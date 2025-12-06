@@ -462,6 +462,7 @@ function paginateContent(htmlContent) {
         return;
     }
 
+    // Initial pagination
     let currentPage = createPage();
     contentArea.appendChild(currentPage);
 
@@ -485,6 +486,45 @@ function paginateContent(htmlContent) {
             contentArea.appendChild(currentPage);
             currentPage.appendChild(elementToAdd);
         }
+    }
+}
+
+// Listen for content changes to rebalance pages
+contentArea.addEventListener('input', (e) => {
+    // Debounce slightly if needed, but direct usually feels snappier
+    requestAnimationFrame(rebalancePages);
+});
+
+function rebalancePages() {
+    const pages = document.querySelectorAll('.document-sheet');
+
+    for (let i = 0; i < pages.length; i++) {
+        let page = pages[i];
+
+        // While page is overflowing
+        while (page.scrollHeight > page.clientHeight) {
+            // Get the last node
+            const lastChild = page.lastChild;
+            if (!lastChild) break; // Should not happen if overflowing
+
+            // Get next page or create it
+            let nextPage = pages[i + 1];
+            if (!nextPage) {
+                nextPage = createPage();
+                contentArea.appendChild(nextPage);
+            }
+
+            // Move last child to the START of next page
+            if (nextPage.firstChild) {
+                nextPage.insertBefore(lastChild, nextPage.firstChild);
+            } else {
+                nextPage.appendChild(lastChild);
+            }
+        }
+
+        // Optional: Pull content back if there's space?
+        // For now, let's stick to the user's request of "extending text -> goes next page"
+        // Pulling back is complex because we don't know if it fits until we move it.
     }
 }
 
