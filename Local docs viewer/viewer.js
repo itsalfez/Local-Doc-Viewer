@@ -125,7 +125,12 @@ async function loadDocument() {
 
         const name = fileRecord.name.toLowerCase();
 
-        if (currentFileType === 'application/pdf' || name.endsWith('.pdf')) {
+        if (currentFileType === 'text/html') {
+            const text = await readFileAsText(fileContent);
+            paginateContent(text);
+            enableEditing();
+        }
+        else if (currentFileType === 'application/pdf' || name.endsWith('.pdf')) {
             await renderPDF(fileContent);
         }
         else if (
