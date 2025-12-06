@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document Viewer</title>
+    <link rel="stylesheet" href="viewer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Merriweather&display=swap"
+        rel="stylesheet">
+
+    <!-- Libraries -->
+    <script src="lib/mammoth.browser.min.js"></script>
+    <script src="lib/marked.min.js"></script>
+    <script src="lib/pdf.min.js"></script>
+</head>
+
+<body>
+    <div class="viewer-container">
+        <header>
+            <div class="header-left">
+                <img src="icon.png" alt="Logo" class="app-logo"
+                    style="width: 28px; height: 28px; margin-right: 8px; object-fit: contain;">
+                <button id="backBtn" onclick="window.close()">← Close</button>
+                <span id="docTitle">Loading...</span>
+            </div>
+            <div class="header-right">
+                <button id="saveBtn" class="primary" style="display: none;">Save Changes</button>
+            </div>
+        </header>
+
+        <div id="toolbar" class="toolbar" style="display: none;">
+            <!-- Row 1: File & History -->
+            <button class="tool-btn" data-cmd="undo" title="Undo">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" />
+                </svg>
+            </button>
+            <button class="tool-btn" data-cmd="redo" title="Redo">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M18.4 10.6C16.55 9 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" />
+                </svg>
+            </button>
+            <button class="tool-btn" id="printBtn" title="Print / Save PDF">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M19 8h-1V3H6v5H5c-1.66 0-3 1.34-3 3v6h3v4h12v-4h3v-6c0-1.66-1.34-3-3-3zM8 5h8v3H8V5zm8 12v2H8v-4h8v2zm2-2v-2H6v2H4v-4c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v4h-2z" />
+                </svg>
+            </button>
+
+            <div class="separator"></div>
+
+            <!-- Row 2: Typography -->
+            <select id="styleSelect" class="tool-select" title="Styles" style="width: 120px;">
+                <option value="p">Normal</option>
+                <option value="h1">Title</option>
+                <option value="h2">Subtitle</option>
+                <option value="h3">Heading 1</option>
+                <option value="h4">Heading 2</option>
+                <option value="h5">Heading 3</option>
+                <option value="h6">Heading 4</option>
+                <option value="pre">Code</option>
+            </select>
+
+            <select id="lineSpacingSelect" class="tool-select" title="Line Spacing" style="width: 80px;">
+                <option value="1">Single</option>
+                <option value="1.15">1.15</option>
+                <option value="1.5">1.5</option>
+                <option value="2">Double</option>
+            </select>
+
+            <select id="fontSelect" class="tool-select" title="Font Family" style="width: 110px;">
+                <option value="Inter">Inter</option>
+                <option value="Merriweather">Merriweather</option>
+                <option value="Arial">Arial</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Courier New">Courier New</option>
+            </select>
+
+            <select id="fontSizeSelect" class="tool-select" title="Font Size" style="width: 60px;">
+                <option value="1">Small</option>
+                <option value="3" selected>Normal</option>
+                <option value="5">Large</option>
+                <option value="7">Huge</option>
+            </select>
+
+            <div class="separator"></div>
+
+            <!-- Row 3: Formatting -->
+            <button class="tool-btn" data-cmd="bold" title="Bold"><strong>B</strong></button>
+            <button class="tool-btn" data-cmd="italic" title="Italic"><em>I</em></button>
+            <button class="tool-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+            <button class="tool-btn" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+            <button class="tool-btn" data-cmd="subscript" title="Subscript">x<sub>2</sub></button>
+            <button class="tool-btn" data-cmd="superscript" title="Superscript">x<sup>2</sup></button>
+
+            <div class="color-picker-wrapper" title="Text Color">
+                <span style="border-bottom: 3px solid #000; font-weight: bold; padding-bottom: 0px;">A</span>
+                <input type="color" id="textColorPicker" value="#000000">
+            </div>
+            <div class="color-picker-wrapper" title="Highlight Color">
+                <span style="background: yellow; font-weight: bold; padding: 0 2px;">H</span>
+                <input type="color" id="hlColorPicker" value="#ffff00">
+            </div>
+
+            <div class="separator"></div>
+
+            <!-- Row 4: Paragraph -->
+            <button class="tool-btn" data-cmd="justifyLeft" title="Align Left">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15 15H3v2h12v-2zm0-8H3v2h12V7zM3 13h18v-2H3v2zm0 8h18v-2H3v2zM3 3v2h18V3H3z" />
+                </svg>
+            </button>
+            <button class="tool-btn" data-cmd="justifyCenter" title="Align Center">
+                <svg viewBox="0 0 24 24">
+                    <path d="M7 15v2h10v-2H7zm-4 6h18v-2H3v2zm0-8h18v-2H3v2zm4-6v2h10V7H7zM3 3v2h18V3H3z" />
+                </svg>
+            </button>
+            <button class="tool-btn" data-cmd="justifyRight" title="Align Right">
+                <svg viewBox="0 0 24 24">
+                    <path d="M3 21h18v-2H3v2zm6-4h12v-2H9v2zm-6-4h18v-2H3v2zm6-4h12V7H9v2zM3 3v2h18V3H3z" />
+                </svg>
+            </button>
+            <button class="tool-btn" data-cmd="justifyFull" title="Justify">
+                <svg viewBox="0 0 24 24">
+                    <path d="M3 21h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18V7H3v2zm0-6v2h18V3H3z" />
+                </svg>
+            </button>
+
+            <button class="tool-btn" data-cmd="indent" title="Indent">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M3 21h18v-2H3v2zM3 8v8l4-4-4-4zm8 9h10v-2H11v2zM3 3v2h18V3H3zm8 6h10V7H11v2zm0 4h10v-2H11v2z" />
+                </svg>
+            </button>
+            <button class="tool-btn" data-cmd="outdent" title="Outdent">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M11 17h10v-2H11v2zm-8-5l4 4V8l-4 4zm0 9h18v-2H3v2zM3 3v2h18V3H3zm8 6h10V7H11v2zm0 4h10v-2H11v2z" />
+                </svg>
+            </button>
+
+            <div class="separator"></div>
+
+            <!-- Row 5: Lists -->
+            <button class="tool-btn" data-cmd="insertUnorderedList" title="Bulleted List">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z" />
+                </svg>
+            </button>
+            <button class="tool-btn" data-cmd="insertOrderedList" title="Numbered List">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2v1zm1-9h1V4H2v1h1v3zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2v1zm5-6v2h14V5H7zm0 14h14v-2H7v2zm0-6h14v-2H7v2z" />
+                </svg>
+            </button>
+
+            <div class="separator"></div>
+
+            <!-- Row 6: Inserts -->
+            <button class="tool-btn" id="findBtn" title="Find & Replace (Ctrl+F)">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+            </button>
+
+            <button class="tool-btn" id="linkBtn" title="Insert Link">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
+                </svg>
+            </button>
+            <button class="tool-btn" id="imageBtn" title="Insert Image">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
+                </svg>
+            </button>
+            <input type="file" id="imageInput" accept="image/*" style="display: none;">
+
+            <button class="tool-btn" id="tableBtn" title="Insert Table (3x3)">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM8 20H4v-4h4v4zm0-6H4v-4h4v4zm0-6H4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4z" />
+                </svg>
+            </button>
+
+            <div class="separator"></div>
+
+            <select id="zoomSelect" class="tool-select" title="Zoom" style="width: 70px;">
+                <option value="0.5">50%</option>
+                <option value="0.75">75%</option>
+                <option value="1" selected>100%</option>
+                <option value="1.25">125%</option>
+                <option value="1.5">150%</option>
+            </select>
+
+        </div>
+
+        <main id="contentArea">
+            <div class="loader">Loading document...</div>
+        </main>
+
+        <!-- Find & Replace Modal -->
+        <div id="findModal" class="modal-overlay hidden">
+            <div class="modal" style="width: 450px;">
+                <div class="modal-header">
+                    <h3>Find & Replace</h3>
+                    <button class="close-modal" id="closeFindModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Find</label>
+                        <input type="text" id="findInput" placeholder="Enter text to find...">
+                    </div>
+                    <div class="form-group">
+                        <label>Replace with</label>
+                        <input type="text" id="replaceInput" placeholder="Enter replacement text...">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="matchCase"> Match case
+                        </label>
+                        <label style="margin-left: 20px;">
+                            <input type="checkbox" id="wholeWord"> Whole words only
+                        </label>
+                    </div>
+                    <div class="find-stats" id="findStats" style="padding: 8px 0; color: #64748b; font-size: 0.9rem;">
+                        <!-- Stats will appear here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="secondary-btn" id="findPrevBtn">← Previous</button>
+                    <button class="secondary-btn" id="findNextBtn">Next →</button>
+                    <button class="secondary-btn" id="replaceBtn">Replace</button>
+                    <button class="primary-btn" id="replaceAllBtn">Replace All</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save As Modal -->
+        <div id="saveModal" class="modal-overlay hidden">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>Save Document</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Filename</label>
+                        <input type="text" id="exportFilename" placeholder="document">
+                    </div>
+                    <div class="form-group">
+                        <label>Format</label>
+                        <select id="exportFormat">
+                            <option value="pdf">PDF Document (.pdf)</option>
+                            <option value="docx">Word Document (.docx)</option>
+                            <option value="txt">Text File (.txt)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="secondary-btn close-modal">Cancel</button>
+                    <button id="confirmSaveBtn" class="primary-btn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="viewer.js"></script>
+</body>
+
+</html>

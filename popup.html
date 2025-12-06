@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Docs</title>
+  <link rel="stylesheet" href="popup.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div class="app-container">
+    <header>
+      <div class="header-left">
+        <img src="icon.png" alt="Logo" class="app-logo">
+        <h1>My Documents</h1>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button id="clearAllBtn" class="secondary-btn" style="padding: 6px 12px; font-size: 0.85rem;">
+          Clear All
+        </button>
+        <button id="importBtn" class="primary-btn">
+          <span class="icon">+</span> Import
+        </button>
+      </div>
+      <input type="file" id="fileInput" accept=".doc,.docx,.pdf,.txt,.md" style="display: none;">
+    </header>
+
+    <div id="dropZone" class="drop-zone hidden">
+      <div class="drop-content">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="17 8 12 3 7 8" />
+          <line x1="12" y1="3" x2="12" y2="15" />
+        </svg>
+        <p>Drop files here to import</p>
+      </div>
+    </div>
+
+    <div class="search-bar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <input type="text" id="searchInput" placeholder="Search documents...">
+    </div>
+
+    <main id="fileList" class="file-list">
+      <!-- Files will be injected here -->
+      <div class="empty-state">
+        <p>No documents yet.</p>
+        <small>Import .docx, .pdf, .txt to get started.</small>
+      </div>
+    </main>
+  </div>
+  <script type="module" src="popup.js"></script>
+</body>
+
+</html>
