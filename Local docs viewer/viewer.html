@@ -101,7 +101,8 @@
                 <input type="color" id="textColorPicker" value="#000000">
             </div>
             <div class="color-picker-wrapper" title="Highlight Color">
-                <span style="background: yellow; font-weight: bold; padding: 0 2px;">H</span>
+                <span class="icon-h"
+                    style="border-bottom: 3px solid #ffeb3b; font-weight: bold; padding-bottom: 0px;">H</span>
                 <input type="color" id="hlColorPicker" value="#ffff00">
             </div>
 
@@ -182,22 +183,42 @@
             </button>
             <input type="file" id="imageInput" accept="image/*" style="display: none;">
 
-            <button class="tool-btn" id="tableBtn" title="Insert Table (3x3)">
-                <svg viewBox="0 0 24 24">
-                    <path
-                        d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM8 20H4v-4h4v4zm0-6H4v-4h4v4zm0-6H4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4z" />
-                </svg>
-            </button>
+            <div class="tool-group"
+                style="display: flex; gap: 4px; align-items: center; border: 1px solid #ddd; padding: 2px 4px; border-radius: 4px;">
+                <button class="tool-btn" id="tableBtn" title="Insert Table">
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM8 20H4v-4h4v4zm0-6H4v-4h4v4zm0-6H4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4z" />
+                    </svg>
+                </button>
+                <div id="tableOptions" class="hidden"
+                    style="position: absolute; background: white; border: 1px solid #ccc; padding: 10px; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1); top: 50px;">
+                    <div style="font-size: 12px; margin-bottom: 5px;">Dimensions:</div>
+                    <input type="number" id="tableRows" value="3" min="1" max="20" style="width: 40px;"> x
+                    <input type="number" id="tableCols" value="3" min="1" max="10" style="width: 40px;">
+                    <button id="insertTableConfirm" style="margin-top: 5px; width: 100%;">Insert</button>
+                </div>
+            </div>
 
             <div class="separator"></div>
 
-            <select id="zoomSelect" class="tool-select" title="Zoom" style="width: 70px;">
-                <option value="0.5">50%</option>
-                <option value="0.75">75%</option>
-                <option value="1" selected>100%</option>
-                <option value="1.25">125%</option>
-                <option value="1.5">150%</option>
-            </select>
+            <div class="tool-group" style="display: flex; align-items: center; gap: 4px;">
+                <button class="tool-btn" id="zoomOutBtn" title="Zoom Out">-</button>
+                <select id="zoomSelect" class="tool-select" title="Zoom" style="width: 75px;">
+                    <option value="0.25">25%</option>
+                    <option value="0.5">50%</option>
+                    <option value="0.75">75%</option>
+                    <option value="0.9">90%</option>
+                    <option value="1" selected>100%</option>
+                    <option value="1.1">110%</option>
+                    <option value="1.25">125%</option>
+                    <option value="1.5">150%</option>
+                    <option value="1.75">175%</option>
+                    <option value="2">200%</option>
+                    <option value="3">300%</option>
+                </select>
+                <button class="tool-btn" id="zoomInBtn" title="Zoom In">+</button>
+            </div>
 
         </div>
 

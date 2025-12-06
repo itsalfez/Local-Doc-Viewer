@@ -741,22 +741,8 @@ body.dark-mode main {
     background: #0a0a0a;
 }
 
-body.dark-mode #contentArea {
-    background: #0a0a0a;
-}
-
-/* Document Sheets - Text Colors */
-body.dark-mode .document-sheet * {
+body.dark-mode .document-sheet {
     color: #e2e8f0;
-}
-
-body.dark-mode .document-sheet h1,
-body.dark-mode .document-sheet h2,
-body.dark-mode .document-sheet h3,
-body.dark-mode .document-sheet h4,
-body.dark-mode .document-sheet h5,
-body.dark-mode .document-sheet h6 {
-    color: #f1f5f9;
 }
 
 body.dark-mode .document-sheet a {
@@ -919,12 +905,42 @@ body.dark-mode ::-webkit-scrollbar-thumb:hover {
 }
 
 /* Fix Highlight Button (H) in Dark Mode */
-body.dark-mode .tool-btn span[style*="background: yellow"],
-body.dark-mode div[style*="background: yellow"] span {
-    color: #000 !important;
+body.dark-mode .icon-h {
+    color: #e2e8f0 !important;
 }
 
-/* Also fix if it's in a wrapper */
-body.dark-mode [title="Highlight Color"] span {
-    color: #000 !important;
+/* Table Dimensions Form in Dark Mode */
+body.dark-mode #tableOptions {
+    background: #1a1a1a !important;
+    border-color: #334155 !important;
+    color: #e2e8f0;
+}
+
+body.dark-mode #tableOptions input {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-color: #334155;
+}
+
+/* Global Utility */
+.hidden {
+    display: none !important;
+}
+
+/* Ensure content doesn't overflow page */
+.document-sheet img,
+.document-sheet table,
+.document-sheet video {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Table Enhancements */
+.document-sheet table {
+    border-collapse: collapse;
+}
+
+.document-sheet td,
+.document-sheet th {
+    min-width: 25px;
 }

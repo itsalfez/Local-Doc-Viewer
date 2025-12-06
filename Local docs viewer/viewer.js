@@ -215,9 +215,29 @@ function setupToolbar() {
     });
 
     // Zoom
+    const updateZoom = (val) => {
+        zoomSelect.value = val;
+        applyZoom(parseFloat(val));
+    };
+
     zoomSelect.addEventListener('change', (e) => {
-        const zoom = parseFloat(e.target.value);
-        applyZoom(zoom);
+        applyZoom(parseFloat(e.target.value));
+    });
+
+    document.getElementById('zoomInBtn').addEventListener('click', () => {
+        const currentIdx = zoomSelect.selectedIndex;
+        if (currentIdx < zoomSelect.options.length - 1) {
+            zoomSelect.selectedIndex = currentIdx + 1;
+            applyZoom(parseFloat(zoomSelect.value));
+        }
+    });
+
+    document.getElementById('zoomOutBtn').addEventListener('click', () => {
+        const currentIdx = zoomSelect.selectedIndex;
+        if (currentIdx > 0) {
+            zoomSelect.selectedIndex = currentIdx - 1;
+            applyZoom(parseFloat(zoomSelect.value));
+        }
     });
 
     // Image Btn
@@ -238,9 +258,37 @@ function setupToolbar() {
     });
 
     // Table Btn
-    tableBtn.addEventListener('mousedown', (e) => {
+    const tableOptions = document.getElementById('tableOptions');
+
+    // Toggle dropdown on button click
+    tableBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        insertTable();
+        e.stopPropagation(); // Stop bubble to prevent immediate close
+        tableOptions.classList.toggle('hidden');
+        if (!tableOptions.classList.contains('hidden')) {
+            document.getElementById('tableRows').focus();
+        }
+    });
+
+    // Prevent closing when clicking INSIDE the dropdown (inputs, etc.)
+    tableOptions.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+
+    document.getElementById('insertTableConfirm').addEventListener('click', () => {
+        const rows = document.getElementById('tableRows').value;
+        const cols = document.getElementById('tableCols').value;
+        if (rows > 0 && cols > 0) {
+            insertTable(rows, cols);
+            tableOptions.classList.add('hidden');
+        }
+    });
+
+    // Close table options if clicked OUTSIDE
+    document.addEventListener('click', (e) => {
+        if (!tableOptions.classList.contains('hidden')) {
+            tableOptions.classList.add('hidden');
+        }
     });
 
     // Print Btn
@@ -286,16 +334,25 @@ function handleImageUpload(e) {
     imageInput.value = '';
 }
 
-function insertTable() {
+function insertTable(rows = 3, cols = 3) {
+    let rowsHtml = '';
+    for (let i = 0; i < rows; i++) {
+        let colsHtml = '';
+        for (let j = 0; j < cols; j++) {
+            colsHtml += '<td style="border: 1px solid #ccc; padding: 4px; min-width: 20px;">&nbsp;</td>';
+        }
+        rowsHtml += `<tr>${colsHtml}</tr>`;
+    }
+
     const tableHtml = `
-        <table style="width: 100%; border-collapse: collapse; margin: 1em 0;" border="1">
+        <table style="width: 100%; border-collapse: collapse; margin: 1em 0; border: 1px solid #ccc;" border="1">
             <tbody>
-                <tr><td>Cell 1</td><td>Cell 2</td><td>Cell 3</td></tr>
-                <tr><td>Cell 4</td><td>Cell 5</td><td>Cell 6</td></tr>
-                <tr><td>Cell 7</td><td>Cell 8</td><td>Cell 9</td></tr>
+                ${rowsHtml}
             </tbody>
         </table>
+        <p><br></p> 
     `;
+    // Added paragraph after table to ensure user can click out
     execCmd('insertHTML', tableHtml);
 }
 
@@ -307,10 +364,16 @@ function applyZoom(scale) {
     const sheets = document.querySelectorAll('.document-sheet');
     sheets.forEach(sheet => {
         sheet.style.zoom = scale;
+        // Transform fallback for Firefox/others if zoom not supported
         if (getComputedStyle(sheet).zoom != scale) {
+            // Only apply transform if zoom didn't work (Chrome supports zoom on non-standard)
+            // But 'zoom' is standard enough in Chrome.
+            // Resetting transform to avoid double scaling if zoom IS supported
             sheet.style.transform = `scale(${scale})`;
             sheet.style.transformOrigin = 'top center';
             sheet.style.marginBottom = `${(scale - 1) * 100}%`;
+        } else {
+            sheet.style.transform = 'none';
         }
     });
 }
@@ -502,10 +565,30 @@ function rebalancePages() {
         let page = pages[i];
 
         // While page is overflowing
+        // Safety check: If the page has only 1 element and it's still overflowing, we can't move it.
         while (page.scrollHeight > page.clientHeight) {
             // Get the last node
             const lastChild = page.lastChild;
-            if (!lastChild) break; // Should not happen if overflowing
+            if (!lastChild) break;
+            if (page.childNodes.length <= 1) break; // Don't move if it's the only child
+
+            // SMART PAGINATION FIX:
+            // Only unwrap if the element ITSELF is taller than the page.
+            if (lastChild.nodeType === Node.ELEMENT_NODE &&
+                ['DIV', 'SECTION', 'ARTICLE', 'MAIN'].includes(lastChild.tagName) &&
+                lastChild.scrollHeight > page.clientHeight) {
+
+                // Move all children of the wrapper to be siblings in the page
+                const fragment = document.createDocumentFragment();
+                while (lastChild.firstChild) {
+                    fragment.appendChild(lastChild.firstChild);
+                }
+
+                // Replace the DIV with its children
+                page.replaceChild(fragment, lastChild);
+
+                continue;
+            }
 
             // Get next page or create it
             let nextPage = pages[i + 1];
@@ -521,12 +604,60 @@ function rebalancePages() {
                 nextPage.appendChild(lastChild);
             }
         }
-
-        // Optional: Pull content back if there's space?
-        // For now, let's stick to the user's request of "extending text -> goes next page"
-        // Pulling back is complex because we don't know if it fits until we move it.
     }
 }
+
+// --- Zoom with Ctrl + Scroll ---
+document.addEventListener('wheel', (e) => {
+    if (e.ctrlKey) {
+        e.preventDefault();
+
+        let direction = e.deltaY > 0 ? -1 : 1;
+        const currentIndex = zoomSelect.selectedIndex;
+        let newIndex = currentIndex + direction;
+
+        // Clamp index
+        if (newIndex < 0) newIndex = 0;
+        if (newIndex >= zoomSelect.options.length) newIndex = zoomSelect.options.length - 1;
+
+        if (newIndex !== currentIndex) {
+            zoomSelect.selectedIndex = newIndex;
+            // manually trigger change event or just call applyZoom
+            const val = parseFloat(zoomSelect.value);
+            applyZoom(val);
+        }
+    }
+}, { passive: false });
+
+// --- Paste Handler for 'Exact' Fidelity ---
+// By default, we let the browser handle it, but we strip top-level huge margins 
+// that might break our page flow if they are from Word.
+contentArea.addEventListener('paste', (e) => {
+    // We do NOT preventDefault() so we get the content.
+    // But we might want to schedule a cleanup.
+    setTimeout(() => {
+        // Remove any fixed-width containers that exceed our page
+        const pages = document.querySelectorAll('.document-sheet');
+        pages.forEach(page => {
+            const children = page.querySelectorAll('*');
+            children.forEach(el => {
+                if (el.style.width && parseInt(el.style.width) > 700) {
+                    el.style.width = '100%';
+                    el.style.maxWidth = '100%';
+                }
+                // Fix black text on dark background from external sources
+                if (document.body.classList.contains('dark-mode')) {
+                    const color = window.getComputedStyle(el).color;
+                    // If text is effectively black (rgb(0,0,0) or similar) and background is transparent
+                    // we might want to invert it, BUT user asked for 'same as past'.
+                    // 'Same as copy' usually implies keeping the colors. 
+                    // So we do NOTHING unless it's unreadable.
+                }
+            });
+        });
+        rebalancePages();
+    }, 0);
+});
 
 
 // --- Renderers ---
